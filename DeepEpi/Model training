@@ -3,4 +3,7 @@ bam_cov.py -a  sample.sort.bam sample.a.cov.bw
 basenji_data.py -g ../data/gap_out_10.bed -l 131072 --local -o ./ATAC_data_131k -p 24 -t .2 -v .2 -w 128 ./AK58.fa ../data/ATAC.target.txt 
 basenji_data.py -g ../data/gap_out_10.bed -l 131072 --local -o ./EPI_data_131k -p 24 -t .2 -v .2 -w 128 ./AK58.fa ../data/EPI.target.txt 
 basenji_data.py -g ../data/gap_out_10.bed -l 131072 --local -o ./RNA_data_131k -p 24 -t .2 -v .2 -w 128 ./AK58.fa ../data/RNA.target.txt
-
+# model train
+basenji_train.py -o ../models/ATAC_train_models ../data/atac_params-NM.json ./ATAC_data_131k
+basenji_train.py -o ../models/EPI_train_models ../data/epi_params-NM.json ./EPI_data_131k
+basenji_train.py -o ../models/RNA_train_models ../data/RNA-params-NM.json ./RNA_data_131k
