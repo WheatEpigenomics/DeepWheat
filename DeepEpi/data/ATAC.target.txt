@@ -1,8 +1,7 @@
 index	identifier	file	clip	sum_stat	description
-0	E5	/lustre/mazhigang/00_project1/01_raw_data/01_atac/04_bam_cov-a/E5.a.cov.bw	384	sum	E5_ATAC
-1	E7	/lustre/mazhigang/00_project1/01_raw_data/01_atac/04_bam_cov-a/E7.a.cov.bw	384	sum	E7_ATAC
-2	E9	/lustre/mazhigang/00_project1/01_raw_data/01_atac/04_bam_cov-a/E9.a.cov.bw	384	sum	E9_ATAC
-3	Leaf	/lustre/mazhigang/00_project1/01_raw_data/01_atac/04_bam_cov-a/Leaf.a.cov.bw	384	sum	Leaf_ATAC
-4	VL	/lustre/mazhigang/00_project1/01_raw_data/01_atac/04_bam_cov-a/VL.a.cov.bw	384	sum	VL_ATAC
-5	YP	/lustre/mazhigang/00_project1/01_raw_data/01_atac/04_bam_cov-a/YP.a.cov.bw	384	sum	YP_ATAC
-6	INPUT	/lustre/mazhigang/00_project1/01_raw_data/01_atac/04_bam_cov-a/Input.a.cov.bw	384	sum	INPUT_ATAC
+0	E5	./E5.a.cov.bw	384	sum	E5_ATAC
+1	E7	./E7.a.cov.bw	384	sum	E7_ATAC
+2	E9	./E9.a.cov.bw	384	sum	E9_ATAC
+3	Leaf	./Leaf.a.cov.bw	384	sum	Leaf_ATAC
+4	VL	./VL.a.cov.bw	384	sum	VL_ATAC
+5	Spike	./Spike.a.cov.bw	384	sum	Spike_ATAC
