@@ -1,9 +1,30 @@
-# data Preprocessing 
+# 01 data Preprocessing 
 bam_cov.py -a  sample.sort.bam sample.a.cov.bw
 basenji_data.py -g ../data/gap_out_10.bed -l 131072 --local -o ./ATAC_data_131k -p 24 -t .2 -v .2 -w 128 ./AK58.fa ../data/ATAC.target.txt 
 basenji_data.py -g ../data/gap_out_10.bed -l 131072 --local -o ./EPI_data_131k -p 24 -t .2 -v .2 -w 128 ./AK58.fa ../data/EPI.target.txt 
 basenji_data.py -g ../data/gap_out_10.bed -l 131072 --local -o ./RNA_data_131k -p 24 -t .2 -v .2 -w 128 ./AK58.fa ../data/RNA.target.txt
-# model train
+# 02  model Train
 basenji_train.py -o ../models/ATAC_train_models ../data/atac_params-NM.json ./ATAC_data_131k
 basenji_train.py -o ../models/EPI_train_models ../data/epi_params-NM.json ./EPI_data_131k
-basenji_train.py -o ../models/RNA_train_models ../data/RNA-params-NM.json ./RNA_data_131k
+basenji_train.py -o ../models/RNA_train_models ../data/RNA-params-NM.json ./RNA_data_131
+#03  model test
+basenji_test.py --ai 0,1,2,3,4,5,6 --bi 0,1,2,3,4,5 --peak  -o ./ATAC_test --rc ../data/atac_params-NM.json ./ATAC_train_models/model_best.h5 ./ATAC_data_131k
+basenji_test.py --ai 0,1,2,3,4,5,6 --bi 0,1,2,3,4,5 --peak  -o ./EPI_test --rc ../data/epi_params-NM.json ./EPI_train_models/model_best.h5 ./EPI_data_131k
+basenji_test.py --ai 0,1,2,3,4,5,6 --bi 0,1,2,3,4,5 --peak  -o ./RNA_test --rc ../data/RNA-params-NM.json ./RNA_train_models/model_best.h5 ./RNA_data_131k
+#04  predict 
+#atac predict
+basenji_predict_bed.py -b 0,1,2,3,4,5  -f ./AK58.fa -g ../data/AK58.genome.sizes -o AK58-atac_predict_out --rc -t ../data/ATAC.target.txt ../data/atac_params-NM.json ./ATAC_train_models/model_best.h5 ./predict.bed
+#epigenome predict
+basenji_predict_bed.py -b 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23  -f./AK58.fa -g ../data/AK58.genome.sizes -o AK58-epi_predict_out --rc -t  ../data/EPI.target.txt ../data/epi_params-NM.json ./EPI_train_models/model_best.h5 ./predict.bed
+# gene expression predict
+basenji_predict_bed.py -b 0,1,2,3,4,5  - -f./AK58.fa -g ../data/AK58.genome.sizes  -g ./AK58.genome.sizes -o target-gene_RNA_predict_out --rc -t ./RNA_new.target.txt ./RNA-params-NM.json ./RNA_train_models/model_best.h5 ./predict_gene.bed
+bigWigMerge ./sample-rna_predict_out/bigwig/*t3.bw ./sample.rna.Leaf.bedGraph
+bedtools bedtobam -g ../data/AK58.genome.sizes -i sample.bedGraph > sample.bam
+samtools sort sample.bam -o sample.sort.bam
+TPMCalculator -g ./AK58.gtf -b sample.sort.bam 
+#05 SNP effect  caculate 
+basenji_sad.py -f ./AK58.fa -o sad_out --rc -t ./ATAC.target.txt --shift "1,0,-1" --ti "0,1" ../data/atac_params-NM.json ./ATAC_train_models/model_best.h5 ./test.vcf
+basenji_sad_table.py ./sad_out/sad.h5
+#06 Saturation mutagenesis 
+basenji_sat_bed.py -f ./AK58.fa -l 200 -d 100 -u 100 -o sat-mut --plots --rc -t ../data/ATAC.target.txt ../data/atac_params-NM.json ./ATAC_train_models/model_best.h5 ./test.bed
+basenji_sat_plot.py ./sat-mut/scores.h5
