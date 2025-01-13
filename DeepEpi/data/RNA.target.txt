@@ -1,0 +1,7 @@
+index	identifier	file	clip	sum_stat	description
+0	E5_RNA	/lustre/mazhigang/00_project1/01_raw_data/03_RNA-tpm/04_ter_bam_cov-a/E5.a.cov.bw	384	sum	E5_RNA
+1	E7_RNA	/lustre/mazhigang/00_project1/01_raw_data/03_RNA-tpm/04_ter_bam_cov-a/E7.a.cov.bw	384	sum	E7_RNA
+2	E9_RNA	/lustre/mazhigang/00_project1/01_raw_data/03_RNA-tpm/04_ter_bam_cov-a/E9.a.cov.bw	384	sum	E9_RNA
+3	Leaf_RNA	/lustre/mazhigang/00_project1/01_raw_data/03_RNA-tpm/04_ter_bam_cov-a/Leaf.a.cov.bw	384	sum	Leaf_RNA
+4	VL_RNA	/lustre/mazhigang/00_project1/01_raw_data/03_RNA-tpm/04_ter_bam_cov-a/VL.a.cov.bw	384	sum	VL_RNA
+5	YP_RNA	/lustre/mazhigang/00_project1/01_raw_data/03_RNA-tpm/04_ter_bam_cov-a/YP.a.cov.bw	384	sum	YP_RNA
