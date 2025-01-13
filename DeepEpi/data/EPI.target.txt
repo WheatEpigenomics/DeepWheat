@@ -23,4 +23,3 @@ index	identifier	file	clip	sum_stat	description
 21	Leaf_H3K4me3	./Leaf-K4.a.cov.bw	384	sum	Leaf_H3K4me3
 22	VL_H3K4me3	./VL-K4.a.cov.bw	384	sum	VL_H3K4me3
 23	Spike_H3K4me3	./Spike-K4.a.cov.bw	384	sum	Spike_H3K4me3
-24	Input	./Input.a.cov.bw	384	sum	Input
