@@ -1,4 +1,6 @@
-# data Preprocessing
+# data Preprocessing 
+bam_cov.py -a  sample.sort.bam sample.a.cov.bw
 basenji_data.py -g ../data/gap_out_10.bed -l 131072 --local -o ./ATAC_data_131k -p 24 -t .2 -v .2 -w 128 ./AK58.fa ../data/ATAC.target.txt 
 basenji_data.py -g ../data/gap_out_10.bed -l 131072 --local -o ./EPI_data_131k -p 24 -t .2 -v .2 -w 128 ./AK58.fa ../data/EPI.target.txt 
 basenji_data.py -g ../data/gap_out_10.bed -l 131072 --local -o ./RNA_data_131k -p 24 -t .2 -v .2 -w 128 ./AK58.fa ../data/RNA.target.txt
+
