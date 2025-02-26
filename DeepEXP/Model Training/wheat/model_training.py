@@ -27,23 +27,6 @@ logging.basicConfig(
     ]
 )
 
-# Custom attention layer
-class FeatureAttentionLayer(layers.Layer):
-    def __init__(self, **kwargs):
-        super(FeatureAttentionLayer, self).__init__(**kwargs)
-
-    def build(self, input_shape):
-        self.attention_weights = self.add_weight(
-            shape=(1, input_shape[-1]),
-            initializer='random_normal',
-            trainable=True,
-            name="attention_weights"
-        )
-
-    def call(self, inputs):
-        attention = tf.nn.softmax(self.attention_weights, axis=-1)
-        return inputs * attention
-
 # Define the Root Mean Squared Error (RMSE) metric
 def root_mean_squared_error(y_true, y_pred):
     return tf.sqrt(tf.reduce_mean(tf.square(y_true - y_pred)))
