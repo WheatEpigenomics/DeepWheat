@@ -34,7 +34,7 @@ def root_mean_squared_error(y_true, y_pred):
 # Data loading and preprocessing
 def load_data(epigenetics_path, sequence_path, label_path, index_path, random_order_path):
     try:
-        # load gene expression data 
+        # load gene expression data
         label_data = pd.read_csv(label_path, delimiter="\t").values
         logging.info(f"Labels loaded from {label_path}, shape: {label_data.shape}")
     except Exception as e:
@@ -74,8 +74,8 @@ def load_data(epigenetics_path, sequence_path, label_path, index_path, random_or
     try:
         # split Test2
         with open(index_path, 'r') as file:
-            G4817_indices = [int(line.strip()) for line in file]
-        indices = np.array(G4700_indices)
+            G4700_indices = [int(line.strip()) for line in file]
+        indices = np.array(G4700_indices)  
 
         test_2_epi = epigenetics_input_data[indices]
         test_2_seq = sequence_input_data[indices]
@@ -88,7 +88,7 @@ def load_data(epigenetics_path, sequence_path, label_path, index_path, random_or
         raise
 
     try:
-        # random data 
+        # random data
         if os.path.isfile(random_order_path):
             random_order = pd.read_csv(random_order_path, delimiter="\t", header=None)[0].values.tolist()
             logging.info(f"Loaded random order from {random_order_path}")
@@ -175,10 +175,10 @@ def identity_residual_block(input_layer, num_filters, kernel_size, L2, drop_rate
 def build_model(kernel_num1, kernel_num2, kernel_size, L2, drop_rate,
                 num_res_blocks, res_block_kernel_size, optimizer, activation,
                 epigenetics_input_shape, sequence_input_shape):
-    
+
     try:
         # epigenomic branches
-        epi_input = keras.Input(shape=(epigenetics_input_shape,), 
+        epi_input = keras.Input(shape=(epigenetics_input_shape,),
                                 name="epi_input", dtype=tf.float32)
         epi_input_reshape = layers.Reshape(target_shape=(5, epigenetics_input_shape // 5, 1))(epi_input)
         epi_input_transpose = layers.Permute((2, 1, 3))(epi_input_reshape)
@@ -198,7 +198,8 @@ def build_model(kernel_num1, kernel_num2, kernel_size, L2, drop_rate,
         epi_conv_dp_l2 = layers.Dropout(drop_rate)(epi_conv_act_l2)
         epi_pool_l2 = layers.AveragePooling2D(pool_size=(5, 1), strides=5, padding="valid")(epi_conv_dp_l2)
 
-        epi_attention = FeatureAttentionLayer()(epi_pool_l2)
+       
+        epi_output = epi_pool_l2
 
         # sequences branches
         seq_input = keras.Input(shape=(sequence_input_shape[0], sequence_input_shape[1], 1),
@@ -219,12 +220,13 @@ def build_model(kernel_num1, kernel_num2, kernel_size, L2, drop_rate,
         seq_conv_dp_l2 = layers.Dropout(drop_rate)(seq_conv_act_l2)
         seq_pool_l2 = layers.AveragePooling2D(pool_size=(5, 1), strides=5, padding="valid")(seq_conv_dp_l2)
 
-        seq_attention = FeatureAttentionLayer()(seq_pool_l2)
+        
+        seq_output = seq_pool_l2
 
         # Merge branches
-        merged_input = layers.Concatenate(axis=2)([epi_attention, seq_attention])
+        merged_input = layers.Concatenate(axis=2)([epi_output, seq_output])
 
-        # Residual block
+        # Residual blocks
         x = merged_input
         for _ in range(num_res_blocks):
             x = identity_residual_block(
@@ -251,11 +253,8 @@ def build_model(kernel_num1, kernel_num2, kernel_size, L2, drop_rate,
         dense3_bn = layers.BatchNormalization()(dense3)
         dense3_act = layers.Activation(activation)(dense3_bn)
 
-        # Change the activation function of the output layer to 'relu' to ensure the gene expression values are non-negative
+        # Output layer with 'relu' activation to ensure non-negative predictions
         output_1d = layers.Dense(1, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(L2))(dense3_act)
-        # Use softplus：
-        # output_1d = layers.Dense(1, activation='softplus', kernel_regularizer=tf.keras.regularizers.l2(L2))(dense3_act)
-
         output = layers.Lambda(lambda x: tf.squeeze(x, axis=-1))(output_1d)
 
         model = keras.Model(inputs=[epi_input, seq_input], outputs=output)
@@ -275,9 +274,8 @@ def build_model(kernel_num1, kernel_num2, kernel_size, L2, drop_rate,
         logging.error(f"Error building model: {e}")
         raise
 
-#  Optuna hyperparameter optimizationv 
+# Optuna hyperparameter optimization
 def objective(trial, sub_train_data):
-    
     try:
         sub_train_epi, sub_train_seq, sub_train_label = sub_train_data
 
@@ -301,7 +299,7 @@ def objective(trial, sub_train_data):
 
         # Get the input shape
         epigenetics_input_shape = sub_train_epi.shape[1]
-        sequence_input_shape = sub_train_seq.shape[1:]
+        sequence_input_shape = sub_train_seq.shape[1:]  # e.g. (len, channels)
 
         # Build the model
         model = build_model(
@@ -363,12 +361,12 @@ def objective(trial, sub_train_data):
                 val_r_square_scores.append(max(history.history['val_r_square']))
                 logging.info(f"Trial {trial.number}, Fold {fold}: val_r_square={max(history.history['val_r_square'])}")
 
-                # 释放内存
+                # release memory
                 K.clear_session()
                 gc.collect()
             except Exception as e:
                 logging.error(f"Error in Trial {trial.number}, Fold {fold}: {e}")
-                return -np.inf 
+                return -np.inf
 
         mean_val_r2 = np.mean(val_r_square_scores)
         logging.info(f"Trial {trial.number} completed with mean val R2: {mean_val_r2}")
@@ -380,7 +378,7 @@ def objective(trial, sub_train_data):
 # Main training process
 def main():
     try:
-        # 文件路径配置
+        # load file
         h5d_file_path = "./spike-best.model.h5"
         label_file_path = "../spike_gene_expression.tpm"
         random_order_path = "./random-select-canshu.txt"
@@ -388,14 +386,14 @@ def main():
         sequence_h5_path = '../spike_sequence.h5'
         epigenetics_h5_path = '../spike_epi.h5'
 
-        # check data 
+        # check data
         required_files = [label_file_path, sequence_h5_path, epigenetics_h5_path, index_file_path]
         for file_path in required_files:
             if not os.path.isfile(file_path):
                 logging.error(f"Required file not found: {file_path}")
                 raise FileNotFoundError(f"Required file not found: {file_path}")
 
-        # load data 
+        # load data
         data = load_data(
             epigenetics_path=epigenetics_h5_path,
             sequence_path=sequence_h5_path,
@@ -410,13 +408,12 @@ def main():
         test2_data_epi, test2_data_seq, test2_data_label = data['test2']
         sub_train_data = data['sub_train']
 
-        # define Optuna 
+        # define Optuna
         def optuna_objective(trial):
             return objective(trial, sub_train_data)
 
-      
         study = optuna.create_study(direction="maximize")
-        study.optimize(optuna_objective, n_trials=80)  # 根据资源调整 n_trials
+        study.optimize(optuna_objective, n_trials=80)  
 
         if study.best_trial:
             best_params = study.best_params
@@ -470,7 +467,6 @@ def main():
             logging.error(f"Error building final model: {e}")
             raise
 
-        
         try:
             checkpoint = keras.callbacks.ModelCheckpoint(
                 h5d_file_path, monitor='val_r_square', verbose=1, save_best_only=True, mode='max'
@@ -487,7 +483,7 @@ def main():
             logging.error(f"Error setting up callbacks: {e}")
             raise
 
-        # Training final model 
+        # Training final model
         try:
             history = final_model.fit(
                 x=[train_data_epi, train_data_seq],
@@ -512,7 +508,7 @@ def main():
             logging.error(f"Error loading model weights from {h5d_file_path}: {e}")
             raise
 
-        #  Test set evaluation 
+        # Test set evaluation
         try:
             expression_gene_prediction = final_model.predict([test_data_epi, test_data_seq])
 
@@ -533,7 +529,7 @@ def main():
             logging.error(f"Error during test set evaluation: {e}")
             raise
 
-        #  Test2  
+        # Test2 evaluation
         try:
             test2_gene_prediction = final_model.predict([test2_data_epi, test2_data_seq])
 
@@ -587,7 +583,7 @@ def main():
             logging.error(f"Error saving test results: {e}")
             raise
 
-        #  Plot the training process
+        # Plot the training process
         try:
             def plot_training(history):
                 output_dir = "./Fig-out-select-canshu"
@@ -631,7 +627,7 @@ def main():
                 plt.title('Training and Validation MAPE')
                 plt.legend()
 
-                # Plot the Root Mean Squared Error (RMSE).
+                # Plot the Root Mean Squared Error (RMSE)
                 plt.subplot(2, 3, 5)
                 plt.plot(history.history['root_mean_squared_error'], label='Training RMSE')
                 plt.plot(history.history['val_root_mean_squared_error'], label='Validation RMSE')
@@ -640,7 +636,7 @@ def main():
                 plt.title('Training and Validation RMSE')
                 plt.legend()
 
-                # Plot the coefficient of determination
+                # Plot the coefficient of determination (R²)
                 plt.subplot(2, 3, 6)
                 plt.plot(history.history['r_square'], label='Training R²')
                 plt.plot(history.history['val_r_square'], label='Validation R²')
@@ -666,5 +662,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
