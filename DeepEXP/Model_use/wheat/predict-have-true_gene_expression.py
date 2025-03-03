@@ -23,29 +23,9 @@ logging.basicConfig(
         logging.StreamHandler()
     ]
 )
-
-#Custom attention layer
-class FeatureAttentionLayer(keras.layers.Layer):
-    def __init__(self, **kwargs):
-        super(FeatureAttentionLayer, self).__init__(**kwargs)
-
-    def build(self, input_shape):
-        self.attention_weights = self.add_weight(
-            shape=(1, input_shape[-1]),
-            initializer='random_normal',
-            trainable=True,
-            name="attention_weights"
-        )
-
-    def call(self, inputs):
-        attention = tf.nn.softmax(self.attention_weights, axis=-1)
-        return inputs * attention
-
-# Define the Root Mean Squared Error (RMSE) metric
 def root_mean_squared_error(y_true, y_pred):
     return tf.sqrt(tf.reduce_mean(tf.square(y_true - y_pred)))
 
-#load data
 def load_training_parameters(params_path):
     try:
         with open(params_path, "r") as f:
@@ -66,7 +46,7 @@ def load_model_weights(model, weights_path):
 
 def load_prediction_data(epigenetics_path, sequence_path):
     try:
-        # load HDF5 data set 
+        # load HDF5 data set
         with h5py.File(sequence_path, 'r') as hf:
             sequence_input_data = hf['dataset_2'][:]
         with h5py.File(epigenetics_path, 'r') as hf:
@@ -78,7 +58,7 @@ def load_prediction_data(epigenetics_path, sequence_path):
         raise
 
     try:
-        # select region 
+        # select region
         ATAC_index = np.concatenate((np.arange(1000, 4500), np.arange(7500, 8200)))
         K27ac_index = np.concatenate((np.arange(11000, 14500), np.arange(17500, 18200)))
         K27_index = np.concatenate((np.arange(21000, 24500), np.arange(27500, 28200)))
@@ -95,15 +75,6 @@ def load_prediction_data(epigenetics_path, sequence_path):
         logging.error(f"Error processing indices: {e}")
         raise
 
-    try:
-        
-        sequence_input_data = (sequence_input_data - np.mean(sequence_input_data, axis=0)) / np.std(sequence_input_data, axis=0)
-        epigenetics_input_data = (epigenetics_input_data - np.mean(epigenetics_input_data, axis=0)) / np.std(epigenetics_input_data, axis=0)
-        logging.info("Data normalization completed.")
-    except Exception as e:
-        logging.error(f"Error during data preprocessing: {e}")
-        raise
-
     return epigenetics_input_data, sequence_input_data
 
 def load_true_labels(labels_path):
@@ -115,7 +86,7 @@ def load_true_labels(labels_path):
         logging.error(f"Error loading true labels from {labels_path}: {e}")
         raise
 
-# Define the residual block and the model building function
+
 def identity_residual_block(input_layer, num_filters, kernel_size, L2, drop_rate, activation):
     shortcut = input_layer
     x = layers.Conv2D(filters=num_filters, kernel_size=kernel_size, activation=None,
@@ -127,7 +98,7 @@ def identity_residual_block(input_layer, num_filters, kernel_size, L2, drop_rate
                       kernel_regularizer=tf.keras.regularizers.l2(L2), padding="same")(x)
     x = layers.BatchNormalization()(x)
 
-    if K.int_shape(input_layer)[-1] != num_filters:
+    if keras.backend.int_shape(input_layer)[-1] != num_filters:
         shortcut = layers.Conv2D(filters=num_filters, kernel_size=(1, 1), activation=None,
                                  kernel_regularizer=tf.keras.regularizers.l2(L2), padding="same")(input_layer)
         shortcut = layers.BatchNormalization()(shortcut)
@@ -138,9 +109,10 @@ def identity_residual_block(input_layer, num_filters, kernel_size, L2, drop_rate
     return x
 
 def build_model_from_params(params, epigenetics_input_shape, sequence_input_shape):
+    
     try:
         # epigenome branch
-        epi_input = keras.Input(shape=(epigenetics_input_shape,), 
+        epi_input = keras.Input(shape=(epigenetics_input_shape,),
                                 name="epi_input", dtype=tf.float32)
         epi_input_reshape = layers.Reshape(target_shape=(5, epigenetics_input_shape // 5, 1))(epi_input)
         epi_input_transpose = layers.Permute((2, 1, 3))(epi_input_reshape)
@@ -160,7 +132,8 @@ def build_model_from_params(params, epigenetics_input_shape, sequence_input_shap
         epi_conv_dp_l2 = layers.Dropout(params['drop_rate'])(epi_conv_act_l2)
         epi_pool_l2 = layers.AveragePooling2D(pool_size=(5, 1), strides=5, padding="valid")(epi_conv_dp_l2)
 
-        epi_attention = FeatureAttentionLayer()(epi_pool_l2)
+     
+        epi_output = epi_pool_l2
 
         # Sequence branch
         seq_input = keras.Input(shape=(sequence_input_shape[0], sequence_input_shape[1], 1),
@@ -181,10 +154,11 @@ def build_model_from_params(params, epigenetics_input_shape, sequence_input_shap
         seq_conv_dp_l2 = layers.Dropout(params['drop_rate'])(seq_conv_act_l2)
         seq_pool_l2 = layers.AveragePooling2D(pool_size=(5, 1), strides=5, padding="valid")(seq_conv_dp_l2)
 
-        seq_attention = FeatureAttentionLayer()(seq_pool_l2)
+    
+        seq_output = seq_pool_l2
 
         # merge branch
-        merged_input = layers.Concatenate(axis=2)([epi_attention, seq_attention])
+        merged_input = layers.Concatenate(axis=2)([epi_output, seq_output])
 
         # Residual block
         x = merged_input
@@ -218,19 +192,27 @@ def build_model_from_params(params, epigenetics_input_shape, sequence_input_shap
 
         model = keras.Model(inputs=[epi_input, seq_input], outputs=output)
         return model
+    except Exception as e:
+        logging.error(f"Error building model: {e}")
+        raise
 
-# predict 
 def main():
     try:
         # File path configuration
-        best_params_path = "best_params.json"  # Best parameters file saved by the training 
-        model_weights_path = "./model.best.h5"  # Best model weights saved by the training 
+        best_params_path = "best_params.json"
+        model_weights_path = "./model.best.h5"
         need_predict_seq_path = "need_predict-seq.h5"
         need_predict_epi_path = "need_predict-epi.h5"
-        need_predict_labels_path = "need_predict_labels.csv"  # True gene expression (if huave)
+        need_predict_labels_path = "need_predict_labels.csv"
 
-        # cheak file 
-        required_files = [best_params_path, model_weights_path, need_predict_seq_path, need_predict_epi_path, need_predict_labels_path]
+        # check file
+        required_files = [
+            best_params_path,
+            model_weights_path,
+            need_predict_seq_path,
+            need_predict_epi_path,
+            need_predict_labels_path
+        ]
         for file_path in required_files:
             if not os.path.isfile(file_path):
                 logging.error(f"Required file not found: {file_path}")
@@ -239,13 +221,13 @@ def main():
         # load best parameters
         best_params = load_training_parameters(best_params_path)
 
-        # get load branch 
+        # load model
         try:
             with h5py.File(need_predict_epi_path, 'r') as hf:
                 need_predict_epi = hf['dataset_1'][:]
             with h5py.File(need_predict_seq_path, 'r') as hf:
                 need_predict_seq = hf['dataset_2'][:]
-            # Determine the input shape based on the preprocessing during training
+            
             ATAC_index = np.concatenate((np.arange(1000, 4500), np.arange(7500, 8200)))
             K27ac_index = np.concatenate((np.arange(11000, 14500), np.arange(17500, 18200)))
             K27_index = np.concatenate((np.arange(21000, 24500), np.arange(27500, 28200)))
@@ -257,10 +239,10 @@ def main():
             epigenetics_input_shape = len(epi_index)
             sequence_input_shape = (len(seq_index), need_predict_seq.shape[2])
 
-            # build model 
+            # build model
             model = build_model_from_params(best_params, epigenetics_input_shape, sequence_input_shape)
 
-            # Compile the model
+            # compile
             optimizer_name = best_params['optimizer']
             learning_rate = best_params['learning_rate']
             if optimizer_name == 'Adam':
@@ -284,28 +266,30 @@ def main():
                 ]
             )
 
-            # Load the weights
             load_model_weights(model, model_weights_path)
+
         except Exception as e:
             logging.error(f"Error building and loading model: {e}")
             raise
 
-        # load predict data 
+        # load data 
         try:
-            epigenetics_input_data, sequence_input_data = load_prediction_data(need_predict_epi_path, need_predict_seq_path)
+            epigenetics_input_data, sequence_input_data = load_prediction_data(
+                need_predict_epi_path, need_predict_seq_path
+            )
             logging.info("Prediction data loaded and preprocessed.")
         except Exception as e:
             logging.error(f"Error loading and preprocessing prediction data: {e}")
             raise
 
-        # load true value (if have) 
+        # load ture gene expression
         try:
             true_labels = load_true_labels(need_predict_labels_path)
         except Exception as e:
             logging.error(f"Error loading true labels: {e}")
             raise
 
-        # predict 
+        # predict
         try:
             predictions = model.predict([epigenetics_input_data, sequence_input_data])
             logging.info(f"Predictions completed, shape: {predictions.shape}")
@@ -332,7 +316,7 @@ def main():
             logging.error(f"Error during prediction evaluation: {e}")
             raise
 
-        # Save the prediction results
+       
         try:
             df_predictions = pd.DataFrame({
                 'True_Label': true_labels,
@@ -351,16 +335,20 @@ def main():
             logging.error(f"Error saving prediction results: {e}")
             raise
 
-        # Plot a scatter plot of the true values versus the predicted values (if have true values) 
+      
         try:
             plt.figure(figsize=(8, 6))
             plt.scatter(true_labels, predictions.flatten(), alpha=0.5)
             plt.xlabel('True Labels')
             plt.ylabel('Predicted Expressions')
             plt.title('True vs. Predicted Expressions')
-            plt.plot([true_labels.min(), true_labels.max()], [true_labels.min(), true_labels.max()], 'r--')
+            plt.plot([true_labels.min(), true_labels.max()],
+                     [true_labels.min(), true_labels.max()], 'r--')
             plt.tight_layout()
-            scatter_path = os.path.join("./Fig-out-1", "true_vs_predicted_scatter.png")
+
+            out_dir = "./Fig-predict"
+            os.makedirs(out_dir, exist_ok=True)
+            scatter_path = os.path.join(out_dir, "true_vs_predicted_scatter.png")
             plt.savefig(scatter_path)
             plt.close()
             logging.info(f"Scatter plot saved to {scatter_path}")
@@ -374,4 +362,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
