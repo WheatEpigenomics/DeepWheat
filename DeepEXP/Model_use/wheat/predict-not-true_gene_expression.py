@@ -21,22 +21,7 @@ logging.basicConfig(
     ]
 )
 
-# Custom attention layer
-class FeatureAttentionLayer(keras.layers.Layer):
-    def __init__(self, **kwargs):
-        super(FeatureAttentionLayer, self).__init__(**kwargs)
 
-    def build(self, input_shape):
-        self.attention_weights = self.add_weight(
-            shape=(1, input_shape[-1]),
-            initializer='random_normal',
-            trainable=True,
-            name="attention_weights"
-        )
-
-    def call(self, inputs):
-        attention = tf.nn.softmax(self.attention_weights, axis=-1)
-        return inputs * attention
 
 # Define the Root Mean Squared Error (RMSE) metric
 def root_mean_squared_error(y_true, y_pred):
@@ -92,18 +77,14 @@ def load_prediction_data(epigenetics_path, sequence_path):
         logging.error(f"Error processing indices: {e}")
         raise
 
-    try:
-        # Normalize data
-        sequence_input_data = (sequence_input_data - np.mean(sequence_input_data, axis=0)) / np.std(sequence_input_data, axis=0)
-        epigenetics_input_data = (epigenetics_input_data - np.mean(epigenetics_input_data, axis=0)) / np.std(epigenetics_input_data, axis=0)
-        logging.info("Data normalization completed.")
-    except Exception as e:
-        logging.error(f"Error during data preprocessing: {e}")
-        raise
+
+    # sequence_input_data = (sequence_input_data - np.mean(sequence_input_data, axis=0)) / np.std(sequence_input_data, axis=0)
+    # epigenetics_input_data = (epigenetics_input_data - np.mean(epigenetics_input_data, axis=0)) / np.std(epigenetics_input_data, axis=0)
+    # logging.info("Data normalization completed.")
 
     return epigenetics_input_data, sequence_input_data
 
-# Define the residual block and the model building function
+# Define the residual block 
 def identity_residual_block(input_layer, num_filters, kernel_size, L2, drop_rate, activation):
     shortcut = input_layer
     x = layers.Conv2D(filters=num_filters, kernel_size=kernel_size, activation=None,
@@ -115,7 +96,7 @@ def identity_residual_block(input_layer, num_filters, kernel_size, L2, drop_rate
                       kernel_regularizer=tf.keras.regularizers.l2(L2), padding="same")(x)
     x = layers.BatchNormalization()(x)
 
-    if K.int_shape(input_layer)[-1] != num_filters:
+    if keras.backend.int_shape(input_layer)[-1] != num_filters:
         shortcut = layers.Conv2D(filters=num_filters, kernel_size=(1, 1), activation=None,
                                  kernel_regularizer=tf.keras.regularizers.l2(L2), padding="same")(input_layer)
         shortcut = layers.BatchNormalization()(shortcut)
@@ -125,6 +106,7 @@ def identity_residual_block(input_layer, num_filters, kernel_size, L2, drop_rate
     x = layers.Dropout(drop_rate)(x)
     return x
 
+# Build model function 
 def build_model_from_params(params, epigenetics_input_shape, sequence_input_shape):
     try:
         # epigenome branch
@@ -134,45 +116,51 @@ def build_model_from_params(params, epigenetics_input_shape, sequence_input_shap
         epi_input_transpose = layers.Permute((2, 1, 3))(epi_input_reshape)
         epi_input_padding = layers.ZeroPadding2D(padding=((10, 9), (0, 0)))(epi_input_transpose)
 
-        epi_conv = layers.Conv2D(filters=params['kernel_num1'], kernel_size=(params['kernel_size'], 5), activation=None,
-                                 kernel_regularizer=tf.keras.regularizers.l2(params['L2']), padding="valid", use_bias=False)(epi_input_padding)
+        epi_conv = layers.Conv2D(filters=params['kernel_num1'], kernel_size=(params['kernel_size'], 5),
+                                 activation=None, kernel_regularizer=tf.keras.regularizers.l2(params['L2']),
+                                 padding="valid", use_bias=False)(epi_input_padding)
         epi_conv_bn = layers.BatchNormalization()(epi_conv)
         epi_conv_act = layers.Activation(params['activation'])(epi_conv_bn)
         epi_conv_dp = layers.Dropout(params['drop_rate'])(epi_conv_act)
 
         epi_input_padding_l2 = layers.ZeroPadding2D(padding=((5, 4), (0, 0)))(epi_conv_dp)
-        epi_conv_l2 = layers.Conv2D(filters=params['kernel_num2'], kernel_size=(params['kernel_size'], 1), activation=None,
-                                    kernel_regularizer=tf.keras.regularizers.l2(params['L2']), padding="valid")(epi_input_padding_l2)
+        epi_conv_l2 = layers.Conv2D(filters=params['kernel_num2'], kernel_size=(params['kernel_size'], 1),
+                                    activation=None, kernel_regularizer=tf.keras.regularizers.l2(params['L2']),
+                                    padding="valid")(epi_input_padding_l2)
         epi_conv_bn_l2 = layers.BatchNormalization()(epi_conv_l2)
         epi_conv_act_l2 = layers.Activation(params['activation'])(epi_conv_bn_l2)
         epi_conv_dp_l2 = layers.Dropout(params['drop_rate'])(epi_conv_act_l2)
         epi_pool_l2 = layers.AveragePooling2D(pool_size=(5, 1), strides=5, padding="valid")(epi_conv_dp_l2)
 
-        epi_attention = FeatureAttentionLayer()(epi_pool_l2)
+      
+        epi_output = epi_pool_l2
 
         # Sequence branch
         seq_input = keras.Input(shape=(sequence_input_shape[0], sequence_input_shape[1], 1),
                                 name="seq_input", dtype=tf.float32)
         seq_input_padding = layers.ZeroPadding2D(padding=((10, 9), (0, 0)))(seq_input)
 
-        seq_conv = layers.Conv2D(filters=params['kernel_num1'], kernel_size=(params['kernel_size'], sequence_input_shape[1]), activation=None,
+        seq_conv = layers.Conv2D(filters=params['kernel_num1'],
+                                 kernel_size=(params['kernel_size'], sequence_input_shape[1]), activation=None,
                                  kernel_regularizer=tf.keras.regularizers.l2(params['L2']), padding="valid", use_bias=False)(seq_input_padding)
         seq_conv_bn = layers.BatchNormalization()(seq_conv)
         seq_conv_act = layers.Activation(params['activation'])(seq_conv_bn)
         seq_conv_dp = layers.Dropout(params['drop_rate'])(seq_conv_act)
 
         seq_input_padding_l2 = layers.ZeroPadding2D(padding=((5, 4), (0, 0)))(seq_conv_dp)
-        seq_conv_l2 = layers.Conv2D(filters=params['kernel_num2'], kernel_size=(params['kernel_size'], 1), activation=None,
-                                    kernel_regularizer=tf.keras.regularizers.l2(params['L2']), padding="valid")(seq_input_padding_l2)
+        seq_conv_l2 = layers.Conv2D(filters=params['kernel_num2'], kernel_size=(params['kernel_size'], 1),
+                                    activation=None, kernel_regularizer=tf.keras.regularizers.l2(params['L2']),
+                                    padding="valid")(seq_input_padding_l2)
         seq_conv_bn_l2 = layers.BatchNormalization()(seq_conv_l2)
         seq_conv_act_l2 = layers.Activation(params['activation'])(seq_conv_bn_l2)
         seq_conv_dp_l2 = layers.Dropout(params['drop_rate'])(seq_conv_act_l2)
         seq_pool_l2 = layers.AveragePooling2D(pool_size=(5, 1), strides=5, padding="valid")(seq_conv_dp_l2)
 
-        seq_attention = FeatureAttentionLayer()(seq_pool_l2)
+     
+        seq_output = seq_pool_l2
 
         # merge branch
-        merged_input = layers.Concatenate(axis=2)([epi_attention, seq_attention])
+        merged_input = layers.Concatenate(axis=2)([epi_output, seq_output])
 
         # Residual block
         x = merged_input
@@ -206,8 +194,11 @@ def build_model_from_params(params, epigenetics_input_shape, sequence_input_shap
 
         model = keras.Model(inputs=[epi_input, seq_input], outputs=output)
         return model
+    except Exception as e:
+        logging.error(f"Error building model: {e}")
+        raise
 
-# Predict
+# predict
 def main():
     try:
         # File path configuration
@@ -275,7 +266,7 @@ def main():
         # Load prediction data
         try:
             epigenetics_input_data, sequence_input_data = load_prediction_data(need_predict_epi_path, need_predict_seq_path)
-            logging.info("Prediction data loaded and preprocessed.")
+            logging.info("Prediction data loaded.")
         except Exception as e:
             logging.error(f"Error loading and preprocessing prediction data: {e}")
             raise
@@ -303,3 +294,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
