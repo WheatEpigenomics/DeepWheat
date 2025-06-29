@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Extract per-base epigenomic signal around TSS±3kb and TTS±2kb for each gene,
-# Usage: python get_epi.py -g AK58.gff3 -p YP.norm.bedGraph YP-K27ac.norm.bedGraph YP-K27.norm.bedGraph YP-K36.norm.bedGraph YP-K4.norm.bedGraph -o epi
+# Usage: python get_epi.py -g genome.gff3 -p YP-atac.norm.bedGraph YP-K27ac.norm.bedGraph YP-K27.norm.bedGraph YP-K36.norm.bedGraph YP-K4.norm.bedGraph -o epi
 
 import os
 import argparse
