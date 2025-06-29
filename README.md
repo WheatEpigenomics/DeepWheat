@@ -6,7 +6,7 @@ DeepWheat, a two-part deep learning framework—DeepEXP and DeepEPI—that enabl
 You can find usage guide in /DeepEpi 
 
 # EeepExp  Install and Usage Guide
-wget https://zenodo.org/records/15765929/files/DeepExp_env.tar.gz 
+wget https://zenodo.org/records/15765929/files/DeepExp_env.tar.gz   
 tar -xzf DeepExp_env.tar.gz -C ~/apps/DeepExp_env  
 cd ~/apps/DeepExp_env  
 ./bin/conda-unpack  
