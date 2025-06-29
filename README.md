@@ -1,6 +1,7 @@
 # DeepWheat Introduction
-This project involves a deep learning approach that integrates sequence and epigenetic data to predict gene expression. It is capable of predicting various epigenetic modifications and gene expression across different tissues and varieties of wheat, as well as the effects of variants on both epigenetic modifications and gene expression
-![image](https://github.com/user-attachments/assets/c6742e9e-8fed-4d6c-b2d7-cb219295281f)
+DeepWheat, a two-part deep learning framework—DeepEXP and DeepEPI—that enables precise, tissue-specific prediction of gene expression. DeepEXP leverages multi-omic inputs to achieve high accuracy, especially for tissue-specific genes, while DeepEPI predicts epigenomic features directly from DNA sequence, facilitating model transfer across varieties.  DeepWheat further identifies regulatory variants with strong expression effects, supporting targeted CRE editing and providing a versatile toolset for functional genomics and trait improvement in crops.
+![image](https://github.com/user-attachments/assets/f37ae380-d3a9-40d8-a880-532703c0ceb5)
+
 
 
 # Environment and package Environment
