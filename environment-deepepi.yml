@@ -1,0 +1,34 @@
+name: basenji
+channels:
+  - defaults
+  - conda-forge
+  - bioconda
+  - nvidia
+dependencies:
+  - astropy
+  - cudatoolkit=11
+  - cudnn==8
+  - cython
+  - h5py
+  - intervaltree
+  - joblib
+  - matplotlib
+  - natsort
+  - networkx
+  - numpy
+  - packaging
+  - pandas
+  - pillow
+  - pybedtools
+  - pybigwig
+  - pysam
+  - python=3.8
+  - scikit-learn
+  - scipy
+  - seaborn
+  - statsmodels
+  - tabulate
+  - pip:
+    - cooler
+    - cooltools
+    - tensorflow
