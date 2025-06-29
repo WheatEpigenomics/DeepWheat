@@ -2,9 +2,9 @@
 DeepWheat, a two-part deep learning framework—DeepEXP and DeepEPI—that enables precise, tissue-specific prediction of gene expression. DeepEXP leverages multi-omic inputs to achieve high accuracy, especially for tissue-specific genes, while DeepEPI predicts epigenomic features directly from DNA sequence, facilitating model transfer across varieties.  DeepWheat further identifies regulatory variants with strong expression effects, supporting targeted CRE editing and providing a versatile toolset for functional genomics and trait improvement in crops.
 ![image](https://github.com/user-attachments/assets/f37ae380-d3a9-40d8-a880-532703c0ceb5)
 # DeepEpi Usage Guide
-## Install basenji-3.9 (https://github.com/calico/basenji)
-## Data  and model train 
-#### bam_cov.py -a  sample.sort.bam sample.a.cov.bw
+## Install basenji-3.9 (https://github.com/calico/basenji)  
+Data  and model train  
+bam_cov.py -a  sample.sort.bam sample.a.cov.bw
 #### basenji_data.py -g ./data/gap_out_10.bed -l 131072 --local -o ./ATAC_data_131k -p 24 -t .2 -v .2 -w 128 ./AK58.fa ./data/atac.target.txt 
 #### basenji_data.py -g ./data/gap_out_10.bed -l 131072 --local -o ./EPI_data_131k -p 24 -t .2 -v .2 -w 128 ./AK58.fa ./data/epi.target.txt 
 #### basenji_data.py -g ./data/gap_out_10.bed -l 131072 --local -o ./RNA_data_131k -p 24 -t .2 -v .2 -w 128 ./AK58.fa ./data/rna.target.txt
