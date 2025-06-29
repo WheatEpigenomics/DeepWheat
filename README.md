@@ -14,8 +14,8 @@ source ~/apps/DeepExp_env/bin/activate
 cd project/script  
 python get_seq.py -h                   
 python get_epi.py -h
-python model_train.py -h 
-python predict_gene_expression-IG_analysis.py -h 
+python model_train.py -h   
+python predict_gene_expression-IG_analysis.py -h   
 python predict_variant_effect.py -h
 
 
