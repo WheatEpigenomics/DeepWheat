@@ -3,12 +3,12 @@ DeepWheat, a two-part deep learning framework—DeepEXP and DeepEPI—that enabl
 ![image](https://github.com/user-attachments/assets/f37ae380-d3a9-40d8-a880-532703c0ceb5)
 # DeepEpi  Install and Usage Guide  
 DeepEXP was developed based on Basenji-3.9. You can view and install the dependencies via environment-deepepi.yml for conda. The codebase is compatible with the latest TensorFlow 2  
-conda env create -f environment.yml  
+conda env create -f environment-deepepi.yml  
 conda install tensorflow (or tensorflow-gpu)  
 python setup.py develop --no-deps
 
 # DeepExp  Install and Usage Guide  
-DeepEXP was developed using Python 3.8 and various scientific computing dependencies, which can be viewed and installed via requirements-deepexp.txt for pip. The codebase is compatible with TensorFlow 2.8.
+DeepEXP was developed using Python 3.8 and various scientific computing dependencies, which can be viewed and installed via conda. The codebase is compatible with TensorFlow 2.8.
 wget https://zenodo.org/records/15765929/files/DeepExp_env.tar.gz   
 tar -xzf DeepExp_env.tar.gz -C ~/apps/DeepExp_env  
 cd ~/apps/DeepExp_env  
