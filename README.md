@@ -23,7 +23,7 @@ python predict_variant_effect.py -h
 
 
 # Environment and package Environment
-You can find in requirements.txt
+You can find in requirements.txt and environment-deepepi.yml
 # Questions
 If you have any questions, requests, or comments, we kindly invite you to contact us at mzgcckk@163.com, luzefu@caas.cn.
 
