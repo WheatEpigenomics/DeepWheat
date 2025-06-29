@@ -8,7 +8,7 @@ conda install tensorflow (or tensorflow-gpu)
 python setup.py develop --no-deps
 
 # DeepExp  Install and Usage Guide  
-DeepEXP was developed using Python 3.8 and various scientific computing dependencies, which can be viewed and installed via conda. The codebase is compatible with TensorFlow 2.8.
+DeepEXP was developed using Python 3.8 and various scientific computing dependencies, which can be viewed and installed via conda. The codebase is compatible with TensorFlow 2.8.  
 wget https://zenodo.org/records/15765929/files/DeepExp_env.tar.gz   
 tar -xzf DeepExp_env.tar.gz -C ~/apps/DeepExp_env  
 cd ~/apps/DeepExp_env  
