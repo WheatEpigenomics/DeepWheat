@@ -1,7 +1,7 @@
 ## ATAC aand Epigenomic Signal Prediction
 A. Sequences < 131,072 bp: For target regions shorter than 131,072 base pairs, use this pipeline. However, using very short input sequences is not recommended, as this will compromise predictive accuracy.
 Step 01  Retrieve the extended target sequence and its adjusted prediction intervals for downstream analysis.
-python  A01_extend_fasta_and_bed.py --inseq you_predict.fa --inbed  you_predict.bed  --outseq  model_input.fa --outbed model_input.bed 
+python  A01_extend_fasta_and_bed.py --inseq ./data/you_predict.fa --inbed  ./data/you_predict.bed  --outseq  model_input.fa --outbed model_input.bed 
 Step 02 get genome size
 samtools faidx model_input.fa | cut -f 1-2 > model_input.fa.size
 Step 03  Predict 
@@ -11,7 +11,7 @@ basenji_predict_bed.py -b 0,1,2,3,4,5  -f ./model_input.fa -g ../model_input.fa.
 epigenome predict
 basenji_predict_bed.py -b 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23  -f ./model_input.fa -g ../model_input.fa.size  -o epi_predict_out --rc -t  ./DeepEpi/data/EPI.target.txt ./DeepEpi/data/epi_params-NM.json ./DeepEPI/EPI_train_models/model_best.h5 ./model_input.bed
 SNP effect  caculate 
-basenji_sad.py -f ./model_input.fa -o sad_out --rc -t ./DeepEPI/ATAC.target.txt --shift "1,0,-1" --ti "0,1" ./DeepEpi/data/atac_params-NM.json .DeepEpi/ATAC_train_models/model_best.h5 ./you.vcf
+basenji_sad.py -f ./model_input.fa -o sad_out --rc -t ./DeepEPI/ATAC.target.txt --shift "1,0,-1" --ti "0,1" ./DeepEpi/data/atac_params-NM.json .DeepEpi/ATAC_train_models/model_best.h5 ./data/you.vcf
 basenji_sad_table.py ./sad_out/sad.h5
 Saturation mutagenesis 
 basenji_sat_bed.py -f ./model_input.fa -l 200 -d 100 -u 100 -o sat-mut --plots --rc -t DeepEpi/data/ATAC.target.txt ./DeepEpi/data/atac_params-NM.json ./DeepEpi/ATAC_train_models/model_best.h5 ./model_input.bed 
