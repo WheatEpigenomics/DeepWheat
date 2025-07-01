@@ -1,4 +1,4 @@
-## ATAC aand Epigenomic Signal Prediction
+## ATAC and Epigenomic Signal Prediction
 A. Sequences < 131,072 bp: For target regions shorter than 131,072 base pairs, use this pipeline. However, using very short input sequences is not recommended, as this will compromise predictive accuracy.
 Step 01  Retrieve the extended target sequence and its adjusted prediction intervals for downstream analysis.
 python  A01_extend_fasta_and_bed.py --inseq ./data/you_predict.fa --inbed  ./data/you_predict.bed  --outseq  model_input.fa --outbed model_input.bed 
