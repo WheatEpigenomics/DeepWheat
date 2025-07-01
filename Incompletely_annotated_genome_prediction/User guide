@@ -9,7 +9,7 @@ module load basenji-3.9
 atac predict 
 basenji_predict_bed.py -b 0,1,2,3,4,5  -f ./model_input.fa -g ../model_input.fa.size -o atac_predict_out --rc -t ./DeepEpi/data/ATAC.target.txt ./DeepEpi/data/atac_params-NM.json ./DeepEpi/ATAC_train_models/model_best.h5 ./model_input.bed
 epigenome predict
-basenji_predict_bed.py -b 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23  -f ./model_input.fa -g ../model_input.fa.size  -o epi_predict_out --rc -t  ./DeepEpi/data/EPI.target.txt ./DeepEpi/data/epi_params-NM.json ./DeepEPI/EPI_train_models/model_best.h5 ./model_input.bed
+basenji_predict_bed.py -b 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23  -f ./model_input.fa -g ./model_input.fa.size  -o epi_predict_out --rc -t  ./DeepEpi/data/EPI.target.txt ./DeepEpi/data/epi_params-NM.json ./DeepEPI/EPI_train_models/model_best.h5 ./model_input.bed
 SNP effect  caculate 
 basenji_sad.py -f ./model_input.fa -o sad_out --rc -t ./DeepEPI/ATAC.target.txt --shift "1,0,-1" --ti "0,1" ./DeepEpi/data/atac_params-NM.json .DeepEpi/ATAC_train_models/model_best.h5 ./data/you.vcf
 basenji_sad_table.py ./sad_out/sad.h5
@@ -19,4 +19,14 @@ basenji_sat_plot.py ./sat-mut/scores.h5
 
 B.  Sequences > 131,072 bp: For target regions longer than 131,072 base pairs, skip directly to Step 02 to run the prediction.
 
+## Gene expression prediction and SNP/INDEL effect evaluation.
+A. With partial genomic structural annotation，for example conting sequences
+Step 01 Get input data
+python ./DeepEXP/Data_Preparation get_seq.py -g incompletely_annotated_genome.fa -a Incompletely_annotated_genome.gff -o  Incompletely_annotated_genome
+python ./DeepEXP/Data_Preparation/get_epi.py -g  Incompletely_annotated_genome.gff -p predict.atac.bedGraph -p predict.K27ac.bedGraph  -p predict.K27.bedGraph -p predict.K36.bedGraph -p  predict.K4.bedGraph -o Incompletely_annotated_genome
+Step 02  Predict gene expression and IG analysis 
+python predict_gene_expression-IG_analysis.py --seq Incompletely_annotated_genome.tsv --epi_dir Incompletely_annotated_genome_epigenomic_data --predict_list predict_gene.list --attrib_list AA_gene.list --model_dir model --out_pred pred_results --out_ig IG_results --ig_steps 100
+Step 03  the SNP/INDEL effect evaluation 
+python predict_variant_effect.py --vcf you.vcf --gff Incompletely_annotated_genome.gff --epi-h5 Incompletely_annotated_genome_epigenomic_data  --gene-list gene.name --model model --tissue tissue.name  --out-prefix Incompletely_annotated_genome
 
+B. NO genomic structural annotation, for example QTL ## 
