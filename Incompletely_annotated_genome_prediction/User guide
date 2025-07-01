@@ -1,4 +1,6 @@
 ## ATAC and Epigenomic Signal Prediction
+# "Simply supply the genomic interval and the corresponding genome sequence you wish to predict"
+
 A. Sequences < 131,072 bp: For target regions shorter than 131,072 base pairs, use this pipeline. However, using very short input sequences is not recommended, as this will compromise predictive accuracy.
 Step 01  Retrieve the extended target sequence and its adjusted prediction intervals for downstream analysis.
 python  A01_extend_fasta_and_bed.py --inseq ./data/you_predict.fa --inbed  ./data/you_predict.bed  --outseq  model_input.fa --outbed model_input.bed 
@@ -16,10 +18,14 @@ basenji_sad_table.py ./sad_out/sad.h5
 Saturation mutagenesis 
 basenji_sat_bed.py -f ./model_input.fa -l 200 -d 100 -u 100 -o sat-mut --plots --rc -t DeepEpi/data/ATAC.target.txt ./DeepEpi/data/atac_params-NM.json ./DeepEpi/ATAC_train_models/model_best.h5 ./model_input.bed 
 basenji_sat_plot.py ./sat-mut/scores.h5
+B.  Sequences > 131,072 bp: For target regions longer than 131,072 base pairs, 
+You can skip  to Step 02 to run the prediction.
 
-B.  Sequences > 131,072 bp: For target regions longer than 131,072 base pairs, skip directly to Step 02 to run the prediction.
+
 
 ## Gene expression prediction and SNP/INDEL effect evaluation.
+"You need to provide the sequence to be predicted, along with a partially annotated gene annotation file. If a gene annotation file is not available, a custom region file (e.g., data/QTL.gff) can also be supplied."
+
 A. With partial genomic structural annotation，for example conting sequences
 Step 01 Get input data
 python ./DeepEXP/Data_Preparation get_seq.py -g incompletely_annotated_genome.fa -a Incompletely_annotated_genome.gff -o  Incompletely_annotated_genome
@@ -28,5 +34,5 @@ Step 02  Predict gene expression and IG analysis
 python predict_gene_expression-IG_analysis.py --seq Incompletely_annotated_genome.tsv --epi_dir Incompletely_annotated_genome_epigenomic_data --predict_list predict_gene.list --attrib_list AA_gene.list --model_dir model --out_pred pred_results --out_ig IG_results --ig_steps 100
 Step 03  the SNP/INDEL effect evaluation 
 python predict_variant_effect.py --vcf you.vcf --gff Incompletely_annotated_genome.gff --epi-h5 Incompletely_annotated_genome_epigenomic_data  --gene-list gene.name --model model --tissue tissue.name  --out-prefix Incompletely_annotated_genome
-
-B. NO genomic structural annotation, for example QTL ## 
+B. NO genomic structural annotation, for example QTL region 
+You simply need to replace incompletely_annotated_genome.fa with genome.fa, and incompletely_annotated_genome.gff with QTL.gff.
