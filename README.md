@@ -6,7 +6,7 @@ DeepEpi was developed based on Basenji-3.9. You can view and install the depende
 conda env create -f environment-deepepi.yml  
 conda install tensorflow (or tensorflow-gpu)  
 python setup.py develop --no-deps  
-You can find the complete user guide in /Deepwheat/DeepEpi/ including model training, testing, and prediction
+You can find the complete user guide in /DeepWheat/DeepEpi/ including model training, testing, and prediction
 
 # DeepExp  Install and Usage Guide  
 DeepExp was developed using Python 3.8 and various scientific computing dependencies, which can be viewed and installed by following the steps below. The codebase is compatible with TensorFlow 2.8.  
