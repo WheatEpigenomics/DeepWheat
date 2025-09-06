@@ -1,7 +1,6 @@
 # DeepWheat Introduction
 DeepWheat, a two-part deep learning framework—DeepEXP and DeepEPI—that enables precise, tissue-specific prediction of gene expression. DeepEXP leverages multi-omic inputs to achieve high accuracy, especially for tissue-specific genes, while DeepEPI predicts epigenomic features directly from DNA sequence, facilitating model transfer across varieties.  DeepWheat further identifies regulatory variants with strong expression effects, supporting targeted CRE editing and providing a versatile toolset for functional genomics and trait improvement in crops.
-<img width="1763" height="1247" alt="image" src="https://github.com/user-attachments/assets/bed9af74-e6b7-4a7d-9152-edcf6260aac9" />
-
+<img width="2124" height="1509" alt="image" src="https://github.com/user-attachments/assets/6c5fe4b6-a71e-4910-a67c-d27f97615a71" />
 # DeepEpi  Install and Usage Guide  
 DeepEpi was developed based on Basenji-3.9. You can view and install the dependencies via environment-deepepi.yml for conda. The codebase is compatible with the latest TensorFlow 2  
 conda env create -f environment-deepepi.yml  
